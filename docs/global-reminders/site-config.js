@@ -1,8 +1,9 @@
 /**
- * Публичный HTTPS-URL бота (aiohttp), без слэша в конце.
+ * Публичный HTTPS-URL бота (aiohttp), только хост, без пути.
+ * Не добавляй /health — проверка бота: открой в браузере отдельно .../health
  * В Discord OAuth2 → Redirects: тот же хост + /api/global-reminders/oauth/callback
  */
-window.GLOBAL_REMINDERS_API_BASE = "https://bot2eod.duckdns.org/health";
+window.GLOBAL_REMINDERS_API_BASE = "https://bot2eod.duckdns.org";
 
 /** Query token для GET /api/global-reminders/server-roles (если задан секрет в боте) */
 window.GLOBAL_REMINDERS_API_TOKEN = "QGJEQRGNKWRHGM";

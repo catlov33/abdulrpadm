@@ -10,9 +10,14 @@ const SESS_KEY = "gr_jwt";
 
 function apiBase() {
   if (typeof window === "undefined") return "";
-  return String(window.GLOBAL_REMINDERS_API_BASE || "")
+  let s = String(window.GLOBAL_REMINDERS_API_BASE || "")
     .trim()
     .replace(/\/$/, "");
+  // /health — отдельная проверка в браузере; в базе API только корень хоста
+  if (s.endsWith("/health")) {
+    s = s.slice(0, -"/health".length).replace(/\/$/, "");
+  }
+  return s;
 }
 
 function apiToken() {
