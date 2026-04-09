@@ -570,9 +570,6 @@ async function openMain() {
 
 function init() {
   const base = apiBase();
-  $("#redirect-hint").textContent = base
-    ? `${base}/api/global-reminders/oauth/callback`
-    : "(сначала укажи GLOBAL_REMINDERS_API_BASE)";
 
   $("#role-search")?.addEventListener("input", () => renderRoleList());
 
