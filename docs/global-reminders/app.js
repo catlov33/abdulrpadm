@@ -40,7 +40,7 @@ function discordClientId() {
 function defaultChannelId() {
   const v = window.GLOBAL_REMINDERS_DEFAULT_CHANNEL_ID;
   if (v !== undefined && v !== null && String(v).trim() !== "") return String(v).trim();
-  return "1371415634897801277";
+  return "1184181274215190721";
 }
 
 function getJwt() {
@@ -81,13 +81,6 @@ function authHeaders() {
 /** Discord snowflake > Number.MAX_SAFE_INTEGER — только строки, без parseInt. */
 function isDiscordSnowflakeStr(s) {
   return typeof s === "string" && /^\d{17,22}$/.test(s);
-}
-
-function splitDiscordIds(raw) {
-  return String(raw || "")
-    .split(/[,;\s]+/)
-    .map((x) => x.trim())
-    .filter(isDiscordSnowflakeStr);
 }
 
 let allRoles = [];
@@ -181,7 +174,6 @@ async function loadScheduleFromBot() {
       remind_before_minutes: x.remind_before_minutes ?? 60,
       channel_id: String(x.channel_id ?? defaultChannelId()),
       timezone: x.timezone || data.timezone || "Europe/Moscow",
-      role_ids_text: Array.isArray(x.role_ids) ? x.role_ids.join(",") : "",
     }));
     const allRids = new Set();
     data.reminders.forEach((x) => {
@@ -270,7 +262,6 @@ function emptyReminder() {
     remind_before_minutes: 60,
     channel_id: defaultChannelId(),
     timezone: $("#default-tz")?.value?.trim() || "Europe/Moscow",
-    role_ids_text: "",
   };
 }
 
@@ -289,8 +280,6 @@ function renderReminders() {
         return `<label class="weekday-lbl"><input type="checkbox" class="chk-site" data-wd="${i}" ${on ? "checked" : ""} />${lab}</label>`;
       }).join("");
 
-      const rolesVal = escapeHtml(r.role_ids_text || "");
-
       return `<div class="reminder-card" data-idx="${idx}">
         <div class="grid-compact">
           <label>Подпись <input type="text" class="in-label" value="${escapeHtml(r.label)}" placeholder="Вечерний глобал" /></label>
@@ -298,7 +287,6 @@ function renderReminders() {
           <label>Время ивента <input type="time" class="in-time" value="${String(r.event_hour).padStart(2, "0")}:${String(r.event_minute).padStart(2, "0")}" /></label>
           <label>За мин. до <input type="number" class="in-before" min="1" max="1440" value="${r.remind_before_minutes}" /></label>
           <label>Часовой пояс <input type="text" class="in-tz" value="${escapeHtml(r.timezone || "Europe/Moscow")}" /></label>
-          <label class="span2">ID ролей (пусто = список выше) <input type="text" class="in-roles" value="${rolesVal}" placeholder="123,456" /></label>
         </div>
         <div class="wd-row">
           <span class="wd-label">Дни</span>
@@ -337,9 +325,6 @@ function renderReminders() {
     card.querySelector(".in-tz")?.addEventListener("input", (e) => {
       r.timezone = e.target.value.trim() || "Europe/Moscow";
     });
-    card.querySelector(".in-roles")?.addEventListener("input", (e) => {
-      r.role_ids_text = e.target.value;
-    });
     card.querySelectorAll(".in-weekdays input").forEach((cb) => {
       cb.addEventListener("change", () => {
         const set = new Set(r.weekdays);
@@ -367,13 +352,7 @@ function collectRowPayload(card, idx) {
   const timeVal = card.querySelector(".in-time")?.value || "18:00";
   const [h, m] = timeVal.split(":").map((x) => parseInt(x, 10));
 
-  const rowRolesRaw = (card.querySelector(".in-roles")?.value || "").trim();
-  let roleIds;
-  if (rowRolesRaw) {
-    roleIds = splitDiscordIds(rowRolesRaw);
-  } else {
-    roleIds = [...selectedRoleIds].filter(isDiscordSnowflakeStr);
-  }
+  const roleIds = [...selectedRoleIds].filter(isDiscordSnowflakeStr);
   if (!isDiscordSnowflakeStr(ch)) {
     throw new Error(
       `Строка ${idx + 1}: ID канала — только цифры, длина 17–22 (режим разработчика Discord → ПКМ по каналу → Копировать ID).`
@@ -630,7 +609,6 @@ function init() {
           remind_before_minutes: x.remind_before_minutes ?? 60,
           channel_id: String(x.channel_id ?? defaultChannelId()),
           timezone: x.timezone || data.timezone || "Europe/Moscow",
-          role_ids_text: Array.isArray(x.role_ids) ? x.role_ids.join(",") : "",
         }));
         const allRids = new Set();
         data.reminders.forEach((x) => {
