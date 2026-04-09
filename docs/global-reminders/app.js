@@ -83,6 +83,20 @@ function isDiscordSnowflakeStr(s) {
   return typeof s === "string" && /^\d{17,22}$/.test(s);
 }
 
+/**
+ * Значение из JSON.parse: большие ID как number дают мусор (IEEE 754).
+ * Доверяем только строке 17–22 цифр; typeof number — игнорируем (нужен fallback).
+ */
+function snowflakeFromApi(v, fallback = "") {
+  if (v == null || v === "") return fallback;
+  if (typeof v === "string") {
+    const t = v.trim();
+    return /^\d{17,22}$/.test(t) ? t : fallback;
+  }
+  if (typeof v === "number") return fallback;
+  return fallback;
+}
+
 let allRoles = [];
 let selectedRoleIds = new Set();
 let reminders = [];
@@ -102,10 +116,20 @@ function roleColorHex(c) {
   return `#${n.toString(16).padStart(6, "0")}`;
 }
 
+/** @returns {number} сколько ролей отброшено из-за id как number в JSON */
 function applyRolesPayload(data) {
   const roles = data.roles;
   if (!Array.isArray(roles)) throw new Error("В ответе нет списка ролей");
-  allRoles = roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+  const normalized = roles
+    .map((r) => ({
+      name: r.name,
+      color: r.color,
+      position: r.position,
+      id: snowflakeFromApi(r.id, ""),
+    }))
+    .filter((r) => r.id);
+  allRoles = normalized.sort((a, b) => (b.position || 0) - (a.position || 0));
+  return Math.max(0, roles.length - normalized.length);
 }
 
 async function loadRoles() {
@@ -124,8 +148,10 @@ async function loadRoles() {
       const res = await fetch(u, { cache: "no-store", mode: "cors" });
       if (res.ok) {
         data = await res.json();
-        applyRolesPayload(data);
-        status.textContent = `${allRoles.length} ролей`;
+        const dropped = applyRolesPayload(data);
+        status.textContent = dropped
+          ? `${allRoles.length} ролей (отброшено ${dropped}: в JSON id только в кавычках)`
+          : `${allRoles.length} ролей`;
         renderRoleList();
         return;
       }
@@ -139,8 +165,10 @@ async function loadRoles() {
     const res = await fetch(`./${ROLE_LIST_FILE}`, { cache: "no-store" });
     if (!res.ok) throw new Error(hint + `roles.json: ${res.status}`);
     data = await res.json();
-    applyRolesPayload(data);
-    status.textContent = `${allRoles.length} ролей (файл)`;
+    const droppedFile = applyRolesPayload(data);
+    status.textContent = droppedFile
+      ? `${allRoles.length} ролей (файл), отброшено ${droppedFile} — id в кавычках`
+      : `${allRoles.length} ролей (файл)`;
     renderRoleList();
   } catch (e) {
     allRoles = [];
@@ -172,12 +200,15 @@ async function loadScheduleFromBot() {
       event_hour: x.event_hour ?? 18,
       event_minute: x.event_minute ?? 0,
       remind_before_minutes: x.remind_before_minutes ?? 60,
-      channel_id: String(x.channel_id ?? defaultChannelId()),
+      channel_id: snowflakeFromApi(x.channel_id, defaultChannelId()) || defaultChannelId(),
       timezone: x.timezone || data.timezone || "Europe/Moscow",
     }));
     const allRids = new Set();
     data.reminders.forEach((x) => {
-      (x.role_ids || []).forEach((rid) => allRids.add(String(rid)));
+      (x.role_ids || []).forEach((rid) => {
+        const s = snowflakeFromApi(rid, "");
+        if (s) allRids.add(s);
+      });
     });
     selectedRoleIds = allRids;
   }
@@ -607,12 +638,15 @@ function init() {
           event_hour: x.event_hour ?? 18,
           event_minute: x.event_minute ?? 0,
           remind_before_minutes: x.remind_before_minutes ?? 60,
-          channel_id: String(x.channel_id ?? defaultChannelId()),
+          channel_id: snowflakeFromApi(x.channel_id, defaultChannelId()) || defaultChannelId(),
           timezone: x.timezone || data.timezone || "Europe/Moscow",
         }));
         const allRids = new Set();
         data.reminders.forEach((x) => {
-          (x.role_ids || []).forEach((rid) => allRids.add(String(rid)));
+          (x.role_ids || []).forEach((rid) => {
+            const s = snowflakeFromApi(rid, "");
+            if (s) allRids.add(s);
+          });
         });
         selectedRoleIds = allRids;
         renderReminders();
