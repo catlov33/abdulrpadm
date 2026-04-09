@@ -1,0 +1,337 @@
+/* Расписание пингов глобалов — минималистичная тёмная тема */
+:root {
+  --bg: #0f1114;
+  --surface: #181b21;
+  --surface2: #1f232b;
+  --border: #2a303c;
+  --text: #e8eaed;
+  --muted: #9aa0a6;
+  --accent: #7c9cff;
+  --accent-dim: rgba(124, 156, 255, 0.15);
+  --danger: #f07178;
+  --ok: #7fd962;
+  --radius: 10px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+.wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+header.hero {
+  margin-bottom: 2rem;
+}
+
+header.hero h1 {
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5rem;
+}
+
+header.hero p.lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  max-width: 52ch;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.35rem;
+  margin-bottom: 1.25rem;
+}
+
+.panel h2 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+details.guide {
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+details.guide summary {
+  cursor: pointer;
+  padding: 1rem 1.25rem;
+  font-weight: 500;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+details.guide summary::-webkit-details-marker {
+  display: none;
+}
+details.guide summary::before {
+  content: "▸";
+  color: var(--accent);
+  transition: transform 0.15s;
+}
+details.guide[open] summary::before {
+  transform: rotate(90deg);
+}
+
+details.guide .guide-body {
+  padding: 0 1.25rem 1.25rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+details.guide .guide-body h3 {
+  color: var(--text);
+  font-size: 0.95rem;
+  margin: 1.25rem 0 0.5rem;
+}
+details.guide .guide-body ol,
+details.guide .guide-body ul {
+  padding-left: 1.25rem;
+}
+details.guide .guide-body code {
+  background: var(--surface2);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.88em;
+}
+
+.search-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+input[type="search"],
+input[type="text"],
+input[type="number"],
+input[type="time"] {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  min-width: 0;
+}
+
+input[type="search"] {
+  flex: 1;
+  min-width: 200px;
+}
+
+.role-list {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.role-item {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.role-item:last-child {
+  border-bottom: none;
+}
+.role-item:hover {
+  background: var(--surface2);
+}
+.role-item input {
+  accent-color: var(--accent);
+}
+.role-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.role-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role-id {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-height: 2rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  background: var(--accent-dim);
+  border: 1px solid rgba(124, 156, 255, 0.35);
+  border-radius: 999px;
+  font-size: 0.82rem;
+}
+.chip button {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  font-size: 1rem;
+}
+.chip button:hover {
+  color: var(--danger);
+}
+
+.reminder-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0.85rem;
+  background: var(--surface2);
+}
+.reminder-card h3 {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.grid {
+  display: grid;
+  gap: 0.65rem 1rem;
+}
+@media (min-width: 560px) {
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+label.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+label.field span.hint {
+  font-size: 0.72rem;
+  opacity: 0.85;
+}
+
+.weekdays {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.weekdays label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+button.btn {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+}
+button.btn.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0a0c10;
+  font-weight: 600;
+}
+button.btn.danger {
+  border-color: rgba(240, 113, 120, 0.5);
+  color: var(--danger);
+}
+button.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.status-bar {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.75rem;
+}
+.status-bar.ok {
+  color: var(--ok);
+}
+.status-bar.err {
+  color: var(--danger);
+}
+
+footer.site {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.hidden {
+  display: none !important;
+}
