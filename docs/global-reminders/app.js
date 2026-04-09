@@ -78,6 +78,18 @@ function authHeaders() {
   return { Authorization: `Bearer ${j}` };
 }
 
+/** Discord snowflake > Number.MAX_SAFE_INTEGER — только строки, без parseInt. */
+function isDiscordSnowflakeStr(s) {
+  return typeof s === "string" && /^\d{17,22}$/.test(s);
+}
+
+function splitDiscordIds(raw) {
+  return String(raw || "")
+    .split(/[,;\s]+/)
+    .map((x) => x.trim())
+    .filter(isDiscordSnowflakeStr);
+}
+
 let allRoles = [];
 let selectedRoleIds = new Set();
 let reminders = [];
@@ -356,16 +368,18 @@ function collectRowPayload(card, idx) {
   const [h, m] = timeVal.split(":").map((x) => parseInt(x, 10));
 
   const rowRolesRaw = (card.querySelector(".in-roles")?.value || "").trim();
-  let roleIds = [];
+  let roleIds;
   if (rowRolesRaw) {
-    roleIds = rowRolesRaw
-      .split(/[,;\s]+/)
-      .map((x) => parseInt(x.trim(), 10))
-      .filter((n) => !Number.isNaN(n) && n > 0);
+    roleIds = splitDiscordIds(rowRolesRaw);
   } else {
-    roleIds = [...selectedRoleIds].map((x) => parseInt(x, 10)).filter((n) => !Number.isNaN(n));
+    roleIds = [...selectedRoleIds].filter(isDiscordSnowflakeStr);
   }
-  if (!ch || !roleIds.length) return null;
+  if (!isDiscordSnowflakeStr(ch)) {
+    throw new Error(
+      `Строка ${idx + 1}: ID канала — только цифры, длина 17–22 (режим разработчика Discord → ПКМ по каналу → Копировать ID).`
+    );
+  }
+  if (!roleIds.length) return null;
 
   const emins = (h || 0) * 60 + (m || 0);
   if (emins < before) {
@@ -380,7 +394,7 @@ function collectRowPayload(card, idx) {
     event_hour: h || 0,
     event_minute: m || 0,
     remind_before_minutes: before,
-    channel_id: parseInt(ch, 10),
+    channel_id: ch,
     role_ids: roleIds,
     timezone: (card.querySelector(".in-tz")?.value || "").trim() || $("#default-tz")?.value?.trim() || "Europe/Moscow",
   };
