@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Расписание пингов глобалов</title>
+    <title>Глобалы — расписание</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -15,111 +15,54 @@
   </head>
   <body>
     <div class="wrap">
-      <header class="hero">
-        <h1>Расписание напоминаний о глобалах</h1>
-        <p class="lead">
-          Настрой время ивента, за сколько минут до него пинг, канал и роли. Скачай файл и отправь его боту командой
-          <strong>/global_reminders_import</strong>.
-        </p>
+      <header class="top">
+        <div>
+          <h1>Расписание пингов глобалов</h1>
+          <p class="sub">Доступ: Гл. и Ст. ивентологи. Сохранение сразу в бота.</p>
+        </div>
+        <div class="auth" id="auth-bar">
+          <span id="auth-user" class="auth-user muted"></span>
+          <button type="button" class="btn sm" id="btn-discord-login">Войти через Discord</button>
+          <button type="button" class="btn sm hidden" id="btn-logout">Выйти</button>
+        </div>
       </header>
 
-      <details class="guide">
-        <summary>Подробная инструкция (как пользоваться, роли, GitHub Pages)</summary>
-        <div class="guide-body">
-          <h3>Зачем этот сайт</h3>
-          <p>
-            <strong>Бот для первого сервера</strong> по расписанию отправляет в выбранный текстовый канал сообщение с
-            пингом ролей (например, глобал в 18:00 — напоминание в 17:00). Здесь ты настраиваешь правила наглядно и
-            скачиваешь готовый файл для импорта.
-          </p>
+      <div id="gate" class="gate hidden">
+        <p id="gate-msg"></p>
+        <p class="muted small">Redirect в Discord Developer Portal: <code id="redirect-hint"></code></p>
+      </div>
 
-          <h3>Список ролей</h3>
-          <p>
-            Сайт запрашивает роли у <strong>бота для первого сервера</strong> по HTTP (адрес и при необходимости токен
-            задаются в <strong>site-config.js</strong>; сервер — тот же, что в конфиге бота, снаружи должен быть
-            доступен по <strong>HTTPS</strong>, иначе браузер с GitHub Pages заблокирует запрос). Если адрес не
-            настроен или бот недоступен, можно положить рядом со страницей локальную выгрузку от команды
-            <strong>/global_reminders_dump_roles</strong>.
-          </p>
+      <main id="app-main" class="hidden">
+        <section class="panel tight">
+          <div class="row-flex">
+            <label class="inline">Часовой пояс <input type="text" id="default-tz" value="Europe/Moscow" /></label>
+            <button type="button" class="btn primary" id="btn-save-bot">Сохранить в бота</button>
+          </div>
+          <p id="save-status" class="status-line"></p>
+        </section>
 
-          <h3>Сбор расписания</h3>
-          <ol>
-            <li>Укажи часовой пояс по умолчанию (часто Москва — <code>Europe/Moscow</code>).</li>
-            <li>Отметь роли чекбоксами (или для каждой строки впиши ID ролей вручную).</li>
-            <li>Для каждой строки: подпись, ID канала, время ивента, за сколько минут пинг, дни недели.</li>
-            <li>Нажми «Скачать файл» и отправь его боту через <strong>/global_reminders_import</strong>.</li>
-          </ol>
+        <section class="panel tight">
+          <h2 class="panel-title">Роли</h2>
+          <input type="search" id="role-search" placeholder="Поиск роли…" autocomplete="off" />
+          <p id="roles-status" class="status-line muted"></p>
+          <div id="role-list" class="role-list"></div>
+          <div id="selected-chips" class="chips"></div>
+        </section>
 
-          <h3>Ограничение бота</h3>
-          <p>
-            Время напоминания должно попадать в <strong>тот же календарный день</strong>, что и ивент (например, нельзя
-            поставить ивент на 00:30 и «за 90 минут» — напоминание ушло бы на прошлые сутки). Сайт проверяет это при
-            экспорте.
-          </p>
+        <section class="panel tight">
+          <h2 class="panel-title">Строки</h2>
+          <div id="reminders-host"></div>
+          <button type="button" class="btn" id="btn-add-row">+ Строка</button>
+        </section>
 
-          <h3>Команды бота (кратко)</h3>
-          <ul>
-            <li><code>/global_reminder_add</code> — одна запись без сайта</li>
-            <li><code>/global_reminder_list</code> — список</li>
-            <li><code>/global_reminder_remove</code> — удалить по номеру</li>
-            <li><code>/global_reminders_export</code> — выгрузить текущее из бота</li>
-            <li><code>/global_reminders_dump_roles</code> — выгрузка списка ролей для этого сайта</li>
-          </ul>
+        <section class="panel tight muted small">
+          <p>Файл: <label class="linklike"><input type="file" id="btn-import-file" accept="application/json,.json" class="hidden" /> импорт JSON</label>
+          · экспорт <button type="button" class="btn link" id="btn-export-file">скачать</button></p>
+          <p id="export-status" class="status-line"></p>
+        </section>
+      </main>
 
-          <h3>GitHub Pages</h3>
-          <p>
-            Полный пошаговый гайд по публикации лежит в документации репозитория проекта (раздел про публикацию сайта).
-          </p>
-        </div>
-      </details>
-
-      <section class="panel">
-        <h2>Общие настройки</h2>
-        <label class="field">
-          Часовой пояс по умолчанию (IANA)
-          <span class="hint">например Europe/Moscow</span>
-          <input type="text" id="default-tz" value="Europe/Moscow" />
-        </label>
-      </section>
-
-      <section class="panel">
-        <h2>Роли сервера</h2>
-        <div class="search-row">
-          <input type="search" id="role-search" placeholder="Поиск по названию или ID…" autocomplete="off" />
-        </div>
-        <p id="roles-status" class="status-bar">Загрузка…</p>
-        <div id="role-list" class="role-list" aria-label="Список ролей"></div>
-        <p style="margin: 0.75rem 0 0.35rem; font-size: 0.85rem; color: var(--muted)">Выбранные роли</p>
-        <div id="selected-chips" class="chips"></div>
-      </section>
-
-      <section class="panel">
-        <h2>Строки расписания</h2>
-        <p style="margin: 0 0 1rem; font-size: 0.9rem; color: var(--muted)">
-          Добавь несколько строк для разных слотов. У каждой строки можно оставить поле ролей пустым — тогда
-          используются отмеченные выше роли.
-        </p>
-        <div id="reminders-host"></div>
-        <div class="btn-row">
-          <button type="button" class="btn" id="btn-add-row">+ Ещё строка</button>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>Экспорт и импорт</h2>
-        <div class="btn-row">
-          <button type="button" class="btn primary" id="btn-export">Скачать файл</button>
-          <label class="btn" style="cursor: pointer">
-            Загрузить файл в редактор
-            <input type="file" id="btn-import-file" accept="application/json,.json" class="hidden" />
-          </label>
-        </div>
-        <p id="export-status" class="status-bar"></p>
-      </section>
-
-      <footer class="site">
-        Edge Of Darkness · статическая страница для настройки напоминаний · без сервера, только HTML/CSS/JS
-      </footer>
+      <footer class="foot muted small">Edge Of Darkness · bot_2 · OAuth identify</footer>
     </div>
     <script src="./app.js" defer></script>
   </body>
