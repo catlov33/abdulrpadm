@@ -11,40 +11,43 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <script src="./site-config.js"></script>
   </head>
   <body>
     <div class="wrap">
       <header class="hero">
         <h1>Расписание напоминаний о глобалах</h1>
         <p class="lead">
-          Собери JSON для бота: время ивента, за сколько минут до него пинг, канал и роли. Экспортируй файл и
-          загрузи в Discord командой <strong>/global_reminders_import</strong>.
+          Настрой время ивента, за сколько минут до него пинг, канал и роли. Скачай файл и отправь его боту командой
+          <strong>/global_reminders_import</strong>.
         </p>
       </header>
 
       <details class="guide">
-        <summary>Подробная инструкция (как пользоваться, роли, JSON, GitHub Pages)</summary>
+        <summary>Подробная инструкция (как пользоваться, роли, GitHub Pages)</summary>
         <div class="guide-body">
           <h3>Зачем этот сайт</h3>
           <p>
-            Бот <strong>bot_2</strong> по расписанию отправляет в выбранный текстовый канал сообщение с пингом ролей
-            (например, глобал в 18:00 — напоминание в 17:00). Здесь ты настраиваешь правила визуально и скачиваешь
-            <code>global_reminders_import.json</code>.
+            <strong>Бот для первого сервера</strong> по расписанию отправляет в выбранный текстовый канал сообщение с
+            пингом ролей (например, глобал в 18:00 — напоминание в 17:00). Здесь ты настраиваешь правила наглядно и
+            скачиваешь готовый файл для импорта.
           </p>
 
-          <h3>Файл roles.json</h3>
+          <h3>Список ролей</h3>
           <p>
-            Список ролей с поиском подгружается из файла <code>roles.json</code> в этой же папке. Получить актуальный
-            файл можно командой Discord <strong>/global_reminders_dump_roles</strong> (бот пришлёт вложение —
-            сохрани как <code>roles.json</code> рядом с <code>index.html</code> в репозитории).
+            Сайт запрашивает роли у <strong>бота для первого сервера</strong> по HTTP (адрес и при необходимости токен
+            задаются в <strong>site-config.js</strong>; сервер — тот же, что в конфиге бота, снаружи должен быть
+            доступен по <strong>HTTPS</strong>, иначе браузер с GitHub Pages заблокирует запрос). Если адрес не
+            настроен или бот недоступен, можно положить рядом со страницей локальную выгрузку от команды
+            <strong>/global_reminders_dump_roles</strong>.
           </p>
 
           <h3>Сбор расписания</h3>
           <ol>
-            <li>Укажи часовой пояс по умолчанию (обычно <code>Europe/Moscow</code>).</li>
+            <li>Укажи часовой пояс по умолчанию (часто Москва — <code>Europe/Moscow</code>).</li>
             <li>Отметь роли чекбоксами (или для каждой строки впиши ID ролей вручную).</li>
             <li>Для каждой строки: подпись, ID канала, время ивента, за сколько минут пинг, дни недели.</li>
-            <li>Нажми «Скачать JSON» и отправь файл боту через <strong>/global_reminders_import</strong>.</li>
+            <li>Нажми «Скачать файл» и отправь его боту через <strong>/global_reminders_import</strong>.</li>
           </ol>
 
           <h3>Ограничение бота</h3>
@@ -60,13 +63,12 @@
             <li><code>/global_reminder_list</code> — список</li>
             <li><code>/global_reminder_remove</code> — удалить по номеру</li>
             <li><code>/global_reminders_export</code> — выгрузить текущее из бота</li>
-            <li><code>/global_reminders_dump_roles</code> — <code>roles.json</code> для сайта</li>
+            <li><code>/global_reminders_dump_roles</code> — выгрузка списка ролей для этого сайта</li>
           </ul>
 
           <h3>GitHub Pages</h3>
           <p>
-            Полный пошаговый гайд по публикации лежит в репозитории: файл
-            <code>docs/GITHUB_PAGES_GLOBAL_REMINDERS.md</code>.
+            Полный пошаговый гайд по публикации лежит в документации репозитория проекта (раздел про публикацию сайта).
           </p>
         </div>
       </details>
@@ -106,9 +108,9 @@
       <section class="panel">
         <h2>Экспорт и импорт</h2>
         <div class="btn-row">
-          <button type="button" class="btn primary" id="btn-export">Скачать global_reminders_import.json</button>
+          <button type="button" class="btn primary" id="btn-export">Скачать файл</button>
           <label class="btn" style="cursor: pointer">
-            Загрузить JSON в редактор
+            Загрузить файл в редактор
             <input type="file" id="btn-import-file" accept="application/json,.json" class="hidden" />
           </label>
         </div>

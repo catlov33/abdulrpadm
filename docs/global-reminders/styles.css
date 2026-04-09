@@ -182,8 +182,58 @@ input[type="search"] {
 .role-item:hover {
   background: var(--surface2);
 }
-.role-item input {
-  accent-color: var(--accent);
+
+/* Чекбоксы в стиле сайта */
+input.chk-site {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  border-radius: 5px;
+  background: var(--bg);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  vertical-align: middle;
+}
+input.chk-site:hover {
+  border-color: rgba(124, 156, 255, 0.45);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+input.chk-site:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(124, 156, 255, 0.45);
+}
+input.chk-site:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input.chk-site:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 7px;
+  border: solid #0a0c10;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+label.weekday-lbl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: pointer;
+  user-select: none;
+}
+label.weekday-lbl:hover input.chk-site {
+  border-color: rgba(124, 156, 255, 0.45);
 }
 .role-swatch {
   width: 10px;
@@ -270,15 +320,11 @@ label.field span.hint {
 .weekdays {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
 }
-.weekdays label {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  color: var(--text);
-  cursor: pointer;
+.weekdays label.weekday-lbl {
+  margin: 0;
 }
 
 .btn-row {

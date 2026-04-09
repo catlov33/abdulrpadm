@@ -1,9 +1,32 @@
 /**
  * Редактор расписания напоминаний о глобалах.
- * Ожидает roles.json рядом с index.html (или подгрузку с того же origin).
+ * Роли: сначала HTTP бота (site-config.js), иначе локальная выгрузка рядом со страницей.
  */
 
 const WD_LABELS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+const ROLE_LIST_FILE = "roles.json";
+const EXPORT_FILENAME = "расписание-глобалов.json";
+const DEFAULT_GUILD_ID = "1100793897933885515";
+
+function apiBase() {
+  if (typeof window === "undefined") return "";
+  return String(window.GLOBAL_REMINDERS_API_BASE || "")
+    .trim()
+    .replace(/\/$/, "");
+}
+
+function apiToken() {
+  if (typeof window === "undefined") return "";
+  return String(window.GLOBAL_REMINDERS_API_TOKEN || "").trim();
+}
+
+function guildIdForApi() {
+  if (typeof window !== "undefined" && window.GLOBAL_REMINDERS_GUILD_ID) {
+    const g = String(window.GLOBAL_REMINDERS_GUILD_ID).trim();
+    if (g) return g;
+  }
+  return DEFAULT_GUILD_ID;
+}
 
 let allRoles = [];
 let selectedRoleIds = new Set();
@@ -24,25 +47,54 @@ function roleColorHex(c) {
   return `#${n.toString(16).padStart(6, "0")}`;
 }
 
+function applyRolesPayload(data) {
+  const roles = data.roles;
+  if (!Array.isArray(roles)) throw new Error("В ответе нет списка ролей");
+  allRoles = roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+}
+
 async function loadRoles() {
   const status = $("#roles-status");
-  status.textContent = "Загрузка roles.json…";
+  status.textContent = "Загрузка списка ролей…";
   status.className = "status-bar";
 
+  let data = null;
+  let hint = "";
+
+  const base = apiBase();
+  if (base) {
+    try {
+      let u = `${base}/api/global-reminders/server-roles?guild_id=${encodeURIComponent(guildIdForApi())}`;
+      const tok = apiToken();
+      if (tok) u += `&token=${encodeURIComponent(tok)}`;
+      const res = await fetch(u, { cache: "no-store", mode: "cors" });
+      if (res.ok) {
+        data = await res.json();
+        applyRolesPayload(data);
+        status.textContent = `Загружено ролей: ${allRoles.length} (с сервера бота)`;
+        status.className = "status-bar ok";
+        renderRoleList();
+        return;
+      }
+      hint = `Бот: HTTP ${res.status}. `;
+    } catch (e) {
+      hint = `Бот: ${String(e.message || e)}. `;
+    }
+  }
+
   try {
-    const res = await fetch("./roles.json", { cache: "no-store" });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const roles = data.roles;
-    if (!Array.isArray(roles)) throw new Error("В JSON нет массива roles");
-    allRoles = roles.sort((a, b) => (b.position || 0) - (a.position || 0));
+    const res = await fetch(`./${ROLE_LIST_FILE}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(hint + `Локальный файл: HTTP ${res.status}`);
+    data = await res.json();
+    applyRolesPayload(data);
     status.textContent = `Загружено ролей: ${allRoles.length}`;
     status.className = "status-bar ok";
     renderRoleList();
   } catch (e) {
     allRoles = [];
     status.textContent =
-      "Не удалось загрузить roles.json. Положи файл рядом с сайтом или открой через GitHub Pages (не file://). " +
+      hint +
+      "Не удалось получить роли. В site-config.js укажи публичный HTTPS-адрес хоста бота (тот же порт, что слушает aiohttp), либо положи выгрузку от бота рядом со страницей. Страница с GitHub Pages должна открываться по HTTPS, если бот тоже по HTTPS. " +
       String(e.message || e);
     status.className = "status-bar err";
     renderRoleList();
@@ -77,7 +129,7 @@ function renderRoleList() {
       const checked = selectedRoleIds.has(id) ? "checked" : "";
       const col = roleColorHex(r.color);
       return `<label class="role-item">
-        <input type="checkbox" data-rid="${escapeHtml(id)}" ${checked} />
+        <input type="checkbox" class="chk-site" data-rid="${escapeHtml(id)}" ${checked} />
         <span class="role-swatch" style="background:${col}"></span>
         <span class="role-name">${escapeHtml(r.name || "—")}</span>
         <span class="role-id">${escapeHtml(id)}</span>
@@ -146,7 +198,7 @@ function renderReminders() {
     .map((r, idx) => {
       const wdChecks = WD_LABELS.map((lab, i) => {
         const on = r.weekdays.includes(i);
-        return `<label><input type="checkbox" data-wd="${i}" ${on ? "checked" : ""} /> ${lab}</label>`;
+        return `<label class="weekday-lbl"><input type="checkbox" class="chk-site" data-wd="${i}" ${on ? "checked" : ""} /> ${lab}</label>`;
       }).join("");
 
       const rolesVal = escapeHtml(r.role_ids_text || "");
@@ -302,8 +354,8 @@ function init() {
     const st = $("#export-status");
     try {
       const data = collectExport();
-      downloadJson("global_reminders_import.json", data);
-      st.textContent = "Файл скачан — загрузи его в Discord: /global_reminders_import";
+      downloadJson(EXPORT_FILENAME, data);
+      st.textContent = "Файл скачан — отправь его боту: /global_reminders_import";
       st.className = "status-bar ok";
     } catch (e) {
       st.textContent = String(e.message || e);
@@ -318,7 +370,7 @@ function init() {
     reader.onload = () => {
       try {
         const data = JSON.parse(String(reader.result));
-        if (!data.reminders || !Array.isArray(data.reminders)) throw new Error("Нет reminders[]");
+        if (!data.reminders || !Array.isArray(data.reminders)) throw new Error("В файле нет списка напоминаний");
         $("#default-tz").value = data.timezone || "Europe/Moscow";
         reminders = data.reminders.map((x) => ({
           label: x.label || "",
